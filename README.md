@@ -1,7 +1,7 @@
 
 # PTM age
 
-Estimating age of PTMs based on a list of sites in Ensembl Compara organisms. The pipeline currently works only in
+Estimating age of PTMs based on a list of sites mapped to Ensembl Compara organisms. For the moment, the pipeline works only in
 phosphorylation.
 
 
@@ -38,55 +38,40 @@ ANCTHRESHOLD ?= 0.51
 The pipeline consists in a few steps that are paralellized using LSF's `bsub`. After some of the steps a number of jobs
 will be launched and you should not continue to the next step until all of them are finished.
 
-1. Download all Ensembl Compara data, reduce set of organisms and regenerate alignments and trees 
+1- Download all Ensembl Compara data, reduce set of organisms and regenerate alignments and trees 
 
 ```bash
-
 make prepare
-
 ```
 
-1. Runs ancestral reconstructrion and retrieves stats at 2 different windows (0 and +/-3 residues)
+2- Runs ancestral reconstructrion and retrieves stats at 2 different windows (0 and +/-3 residues)
 
 ```bash
-
 make ancestral
-
 ```
 
 This should produce some stats on the different modified alignment columns.
 
 ```bash
-
 wc -l results/stats* 
-
 ```
 
-1. Collects ancestral states
-
+3- Collects ancestral states
 
 ```bash
-
 make collectStates 
-
 ```
 
-1. Compiles all results in summary file
-
+4- Compiles all results in summary file
 
 ```bash
-
 make collectOrigins 
-
 ```
 
-The resulting files will be accessible in the `results` directory.
-
+The resulting summary files will be accessible in the `results` directory.
 
 ```bash
-
 cat results/all_origins_species_n10_w0_0.51.tab | grep "Homo sapiens" | cut -f9,9 | sort | uniq -c
-
 ```
 
 
