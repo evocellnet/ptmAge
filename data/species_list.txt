@@ -1,0 +1,10 @@
+homo sapiens
+mus musculus
+rattus norvegicus
+equus caballus
+gallus gallus
+xenopus tropicalis
+danio rerio
+drosophila melanogaster
+caenorhabditis elegans
+saccharomyces cerevisiae
