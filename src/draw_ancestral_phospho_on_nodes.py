@@ -330,4 +330,5 @@ for column in column_list:
                     output.write(basename+"\t"+column+"\t"+species+"\t"+gene+"\t"+str(site)+"\t"+ \
                                  str(oldest_node)+"\t"+str(oldest_score)+"\t"+ \
                                  str(common_ancestor_all)+"\t"+name_object[common_ancestor_all].name+"\n")
+output.flush()
 output.close()
