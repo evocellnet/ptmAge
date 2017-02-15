@@ -42,6 +42,7 @@ PYTHON ?= $(shell which python)
 GREP ?= $(shell which grep)
 TAR ?= $(shell which tar)
 GUNZIP ?= $(shell which gunzip)
+RSCRIPT ?= $(shell which Rscript)
 
 COMPARAFTPFASTA ?= ftp://ftp.ensembl.org/pub/release-$(1)/emf/ensembl-compara/homologies/Compara.$(1).protein.aa.fasta.gz
 COMPARAFTPTREE ?= ftp://ftp.ensembl.org/pub/release-$(1)/emf/ensembl-compara/homologies/Compara.$(1).protein.nh.emf.gz
@@ -60,6 +61,16 @@ STATSWINDOW3 ?= $(RESULTSDIR)/stats_$(SPECIESTAG)_w3.tab
 
 RESULTSWINDOW0 ?= $(RESULTSDIR)/all_origins_$(SPECIESTAG)_w0_0.51.tab
 RESULTSWINDOW3 ?= $(RESULTSDIR)/all_origins_$(SPECIESTAG)_w3_0.51.tab
+
+PROTEOMES = $(TEMPDIR)/proteomes
+BIOMARTDATASETS = $(TEMPDIR)/biomart_datasets.csv
+
+SIMPLIFYRELEASE = $(shell echo $(1) | sed -e "s/\(.*\)\.p.*/\1/g" | sed -e "s/Equ Cab 2/EquCab2/g" | sed -e "s/JGI 4.2/JGI_4\.2/g")
+ENSEMBL_URL = ftp://ftp.ensembl.org/pub/release-$(1)/fasta/$(shell echo $(2) | sed 's/\(.*\) \(.*\)/\L\1_\2/')/pep/$(shell echo $(2) | sed -e "s/\b\(.\)/\u\1/g").$(call SIMPLIFYRELEASE, $(3)).pep.all.fa.gz
+ORGSHORTNAME = $(shell echo $(1) | sed 's/\(.\).*[ _]\(.*\)/\L\1\2/')
+CSVCUT = $(shell grep $(call ORGSHORTNAME, $(1)) $(BIOMARTDATASETS) | cut -d"," -f$(2) | head -n 1)
+ENSEMBL_TARGETS = $(foreach SP,$(SPECIES),ensembl_$(SP))
+SPECIES = $(shell sed 's/ /_/g' $(SPECIESFILE))
 
 
 .PHONY: prepare ancestral collectStates collectOrigins
@@ -94,6 +105,28 @@ $(GENETOTREEFILE): $(COMPARATREES) $(COMPARAFASTA)
 	$(PYTHON) $(SRCDIR)/ensembl2gnt.py $(COMPARATREES) $(GENETREEDIR) > $@
 
 
+
+#Downloads the proteomes for each species from ensembl
+
+ensembl_proteomes:  $(foreach SP,$(SPECIES),ensembl_$(SP))
+
+$(ENSEMBL_TARGETS): ensembl_%: $(PROTEOMES)/%.fasta
+
+#creates proteomes directory
+$(PROTEOMES):
+	mkdir -p $@
+
+#Downloads the biomart datasets where the genome release is available
+$(BIOMARTDATASETS):
+	printf "Downloading Biomart datasets...\n";\
+	$(RSCRIPT) $(SRCDIR)/biomartDatasets.R ensembl_compara_$(COMPARARELEASE) $@
+
+# Download the Ensembl proteome for each species
+$(PROTEOMES)/%.fasta: | $(PROTEOMES)
+	printf "Downloading $* from ensembl...\n"
+	$(WGET) -P $(PROTEOMES)/$* \
+		$(call ENSEMBL_URL,$(COMPARARELEASE),$*,$(call CSVCUT,$*,4)) -O $@.gz
+	gunzip $@.gz
 
 #Runs ancestral reconstructrion and retrieves stats at 2 different windows
 ancestral: $(STATSWINDOW0) $(STATSWINDOW3)
