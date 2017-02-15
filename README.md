@@ -38,7 +38,7 @@ ANCTHRESHOLD ?= 0.51
 The pipeline consists in a few steps that are paralellized using LSF's `bsub`. After some of the steps a number of jobs
 will be launched and you should not continue to the next step until all of them are finished.
 
-1- Download all Ensembl Compara data, reduce set of organisms and regenerate alignments and trees 
+1- Download all Ensembl data, filter the set of organisms of interest and regenerate alignments and trees 
 
 ```bash
 make prepare
