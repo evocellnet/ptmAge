@@ -83,7 +83,8 @@ $(TEMPDIR):
 	mkdir -p $@
 
 #extracting organisms of interest, format conversion, recomputing branch lengths, convert to ultrametric
-prepare: | $(TEMPDIR) $(GENETOTREEFILE)
+#Downloads the proteomes for each species from ensembl
+prepare: | $(TEMPDIR) $(GENETOTREEFILE) ensembl_proteomes
 	printf "* Reducing organisms to set of interest\n";\
 	$(PYTHON) $(SRCDIR)/ensembl2reduced.py $(GENETOTREEFILE) $(SPECIESFILE) $(SPECIESTAG) 
 
@@ -104,10 +105,6 @@ $(GENETOTREEFILE): $(COMPARATREES) $(COMPARAFASTA)
 	printf "* Generating gene trees\n";\
 	$(PYTHON) $(SRCDIR)/ensembl2gnt.py $(COMPARATREES) $(GENETREEDIR) > $@
 
-
-
-#Downloads the proteomes for each species from ensembl
-
 ensembl_proteomes:  $(foreach SP,$(SPECIES),ensembl_$(SP))
 
 $(ENSEMBL_TARGETS): ensembl_%: $(PROTEOMES)/%.fasta
@@ -127,6 +124,7 @@ $(PROTEOMES)/%.fasta: | $(PROTEOMES)
 	$(WGET) -P $(PROTEOMES)/$* \
 		$(call ENSEMBL_URL,$(COMPARARELEASE),$*,$(call CSVCUT,$*,4)) -O $@.gz
 	gunzip $@.gz
+
 
 #Runs ancestral reconstructrion and retrieves stats at 2 different windows
 ancestral: $(STATSWINDOW0) $(STATSWINDOW3)
