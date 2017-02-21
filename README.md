@@ -1,16 +1,16 @@
 
 # PTM age
 
-Estimating age of PTMs based on a list of sites mapped to Ensembl Compara organisms. For the moment, the pipeline works only in
-phosphorylation.
+Estimating age of PTMs based on a list of sites mapped to Ensembl Compara organisms. For the moment, the pipeline works
+only in phosphorylation.
 
 
 ## Dependencies
 
-- Python
-- Biopython
-- phyml (available in home/linuxbrew)
-- newick-utils (available in home/linuxbrew)
+- Python (v2 & v3)
+- Biopython (v2 & v3)
+- phyml (available in (home/linux)brew)
+- newick-utils (available in (home/linux)brew)
 - phytools (R package)
 - ghostscript
 - wget
@@ -27,13 +27,14 @@ Additionally the next variables need to be updated in the `Makefile`.
 
 ```makefile
 
-COMPARARELEASE ?= 86
-SPECIESTAG ?= species_n10
-ANCTHRESHOLD ?= 0.51
+COMPARARELEASE ?= 86 # Compara release
+SPECIESTAG ?= species_n10 #tag to distinguish the organisms list
+ANCTHRESHOLD ?= 0.51 # threshold for ancestral reconstruction
+SAMPLESIZE ?= 4000 #number of positives and negatives: Total 2x
 
 ```
 
-## Running the pipeline
+### Running the pipeline ###
 
 The pipeline consists in a few steps that are paralellized using LSF's `bsub`. After some of the steps a number of jobs
 will be launched and you should not continue to the next step until all of them are finished.
@@ -44,25 +45,83 @@ will be launched and you should not continue to the next step until all of them 
 make prepare
 ```
 
-2- Runs ancestral reconstructrion and retrieves stats at 2 different windows (0 and +/-3 residues)
+The next few steps calculate the probabilities of all STY to be phosphorylated according to a SVM trained using
+netphorest. The default pipeline trains the models using the available data in each organism but it only calculates the
+probabilities based on the human model. Some of the steps require some time to run or implemented in the LSF system,
+therefore you will have to wait and check that all jobs are finished before runing the next instruction. If you are ok
+using 0.5 as a probability for all phosphoacceptor residues you can jump to step X (WARNING: call to `make ancestral`
+not yet implemented to run without probabilities).
+
+
+2- Run Netphorest in every organism
+
+```bash
+
+make netphorest_proteomes
+#in LSF "bsub -n 10 lsmake netphorest_proteomes""
+
+```
+
+3- Prepare feature files, training set and test set to train the SVM. The total number of positives and negatives is
+contained in the variable `SAMPLESIZE`.
+
+```bash
+make prepareAllSVM
+```
+
+4- Train and test the SVM based on the previously generated files
+
+```bash
+make trainSVM
+```
+
+5- Prepare full dataset of STYs to classify
+
+```bash
+make prepareFullSVM
+```
+
+5- Prepare full dataset of STYs to classify
+
+```bash
+make prepareFullSVM
+```
+
+6- Classify the full set of sites using the human ST model
+
+```bash
+make classifyFull
+```
+
+7- Convert the predictions into probabilities
+
+```bash
+make getProbabilities
+```
+
+If everything worked fine the resulting probabilities based on the SVM can be found in `temp/allSTY_probabilities.tab`.
+
+
+8- Now we will run the ancestral reconstruction. The next step will retrieve stats at 2 different windows (0 and +/-3
+residues).
 
 ```bash
 make ancestral
 ```
 
-This should produce some stats on the different modified alignment columns.
+This step produces some stats on the different modified alignment columns.
 
 ```bash
 wc -l results/stats* 
 ```
 
-3- Collects ancestral states
+9- Collects ancestral states
 
 ```bash
 make collectStates 
 ```
 
-4- Compiles all results in summary file
+10- Compiles all results in summary file
 
 ```bash
 make collectOrigins 
@@ -77,5 +136,6 @@ cat results/all_origins_species_n10_w0_0.51.tab | grep "Homo sapiens" | cut -f9,
 
 ## Authorship ##
 
-This project was developed by Romain Studer. David Ochoa just prepared the Makefile to automate it.
+This project was developed by Romain Studer. David Ochoa just prepared organized the scripts in a common project and
+wrote the Makefile to automate the process.
 

@@ -11,7 +11,10 @@ ensembl_families_dictfile = sys.argv[2]
 species_tag = sys.argv[3]
 tree_directory = sys.argv[4]
 region = sys.argv[5]
+predicted_site = sys.argv[6]
 
+def rgb_to_hex(rgb):
+   return '#%02x%02x%02x' % rgb
 
 # Load modified sites per genes
 ptm_dict = {}
@@ -33,6 +36,27 @@ while 1:
     ptm_dict[ensembl_id] = site_list
 file_in.close()
 
+# Load modified sites per genes
+ptm_predicted_dict = {}
+if predicted_site != "":
+    file_in = open(predicted_site, "r")
+    while 1:
+        line = file_in.readline()
+        if line == "":
+            break
+        line = line.rstrip()
+        tab = line.split("\t")
+        ensembl_id = tab[0]
+        site = tab[1]
+        proba = tab[4]
+    
+        # Upload data
+        site_dict = {}
+        if ensembl_id in ptm_predicted_dict:
+            site_dict = ptm_predicted_dict[ensembl_id]
+        site_dict[site] = proba
+        ptm_predicted_dict[ensembl_id] = site_dict
+    file_in.close()
 
 # Load Ensembl families
 family_with_ptm = []
@@ -184,7 +208,10 @@ for family in family_with_ptm:
                     score = 0.0
                     if aa in ["S", "T", "Y"]:
                         score = 0.5
-                    site = corresponding_dict[ensembl_id][column]+1
+                    site = str(corresponding_dict[ensembl_id][column]+1)
+                    if ensembl_id in ptm_predicted_dict:
+                        if site in ptm_predicted_dict[ensembl_id]:
+                            score = ptm_predicted_dict[ensembl_id][site]
                     if ensembl_id in ptm_dict:
                         # print ensembl_id, site, ptm_dict[ensembl_id]
                         if str(site) in ptm_dict[ensembl_id]:
@@ -233,13 +260,19 @@ for family in family_with_ptm:
             #print ensembl_id, column, corresponding_dict[ensembl_id]
             if column in corresponding_dict[ensembl_id]:
                 site = corresponding_dict[ensembl_id][column]+1
-                score = scoring_dict[ensembl_id][column]
+                score = float(scoring_dict[ensembl_id][column])
+
                 colour = "white"
-                if score == 1.0:
-                    colour = "red"
-                elif score == 0.5:
-                    colour = "grey"
-                # Write line
+                gradient = 255
+                if score > 0:
+                    gradient = int(255*(1-score))
+                if gradient > 240:
+                    gradient = 240
+                colour = rgb_to_hex((gradient,gradient,gradient))
+                colour = colour[1:]
+                if ensembl_id in ptm_dict:
+                    if str(site) in ptm_dict[ensembl_id]:
+                        colour = "red"                
                 #print ensembl_id, column, score
                 if score > 0:
                     jalview_out.write(str(score)+"\t"+ensembl_id+"\t" \
