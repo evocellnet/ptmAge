@@ -340,7 +340,12 @@ $(GENETOTREEHUMANFILE):
 #General stats and ancestral reconstruction
 $(RESULTSDIR)/stats_$(SPECIESTAG)_w%.tab: $(GENETOTREEHUMANFILE)
 	printf "* Extracting stats in conservation\n";\
-	$(PHYTON) $(SRCDIR)/compile_data.py $(ALLSITES) $(GENETOTREEHUMANFILE) $(SPECIESTAG) $(GENETREEDIR) $* \
+	$(PHYTON) $(SRCDIR)/compile_data.py \
+	$(ALLSITES) \
+	$(GENETOTREEHUMANFILE) \
+	$(SPECIESTAG) \
+	$(GENETREEDIR) \
+	$* \
 	$(ALLPROBABILITIES) > $@
 
 #Collect ancestral states
