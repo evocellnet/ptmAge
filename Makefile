@@ -175,7 +175,7 @@ getProbabilities: $(ALLPROBABILITIES)
 
 #Preparing the training sets
 $(TRAININGSETS)/%_ST.train: | $(TRAININGSETS) $(TESTINGSETS) $(SVMFEATURENAMES) $(SVMFEATUREVALUES) $(NETPHOREST)/%.netphorest
-	$(BSUB) -o /dev/null -M 40000 -R "rusage[mem=40000]" -q highpri \
+	$(BSUB) -o /dev/null -M 25000 -R "rusage[mem=25000]" \
 	$(PYTHON3) $(SRCDIR)/netphorest_to_svm.py \
 	"--sequences="$(PROTEOMESCANONICAL)/$*.fasta \
 	"--psites="$(ALLSITES) \
@@ -189,7 +189,7 @@ $(TRAININGSETS)/%_ST.train: | $(TRAININGSETS) $(TESTINGSETS) $(SVMFEATURENAMES) 
 	"--aa_target="ST
 
 $(TRAININGSETS)/%_Y.train: | $(TRAININGSETS) $(TESTINGSETS) $(SVMFEATURENAMES) $(SVMFEATUREVALUES) $(NETPHOREST)/%.netphorest
-	$(BSUB) -o /dev/null -M 40000 -R "rusage[mem=40000]" -q highpri \
+	$(BSUB) -o /dev/null -M 25000 -R "rusage[mem=25000]" \
 	$(PYTHON3) $(SRCDIR)/netphorest_to_svm.py \
 	"--sequences="$(PROTEOMESCANONICAL)/$*.fasta \
 	"--psites="$(ALLSITES) \
@@ -224,7 +224,7 @@ $(MODELTESTS)/%_Y.modeltest: | $(MODELTESTS) $(SVMMODELS)/%_Y.model
 
 #Preparing the full sets to classify (only STs)
 $(TOCLASSIFYSETS)/%_ST.full: | $(TOCLASSIFYSETS) $(TESTINGSETS) $(SVMFEATURENAMES) $(SVMFEATUREVALUES) $(NETPHOREST)/%.netphorest
-	$(BSUB) -o /dev/null -M 40000 -R "rusage[mem=40000]" -q highpri \
+	$(BSUB) -o /dev/null -M 20000 -R "rusage[mem=20000]" \
 	$(PYTHON3) $(SRCDIR)/netphorest_to_svm.py \
 	"--sequences="$(PROTEOMESCANONICAL)/$*.fasta \
 	"--psites="$(ALLSITES) \
@@ -238,7 +238,7 @@ $(TOCLASSIFYSETS)/%_ST.full: | $(TOCLASSIFYSETS) $(TESTINGSETS) $(SVMFEATURENAME
 	"--aa_target="ST
 
 $(SVMPREDICTIONS)/%_ST.predictions: | $(SVMPREDICTIONS) $(SVMCLASSSTATS)
-	$(BSUB) -o /dev/null -q highpri \
+	$(BSUB) -o /dev/null \
 	$(SVMCLASS) \
 	$(TOCLASSIFYSETS)/$*_ST.full \
 	$(SVMMODELS)/homo_sapiens_ST.model \
