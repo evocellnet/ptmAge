@@ -108,7 +108,7 @@ for path in families_list:
     script_file.close()
 
     # Execute script
-    os.system("bsub -e /dev/null -o /dev/null sh "+family+".sh")
+    os.system("bsub -M 10000 -R 'rusage[mem=10000]' -e /dev/null -o /dev/null sh "+family+".sh")
 
     os.chdir("../../../../")
 

@@ -45,6 +45,7 @@ if predicted_site != "":
         if line == "":
             break
         line = line.rstrip()
+        #sys.stderr.write(line + "\n")
         tab = line.split("\t")
         ensembl_id = tab[0]
         site = tab[1]
@@ -345,7 +346,7 @@ for family in family_with_ptm:
 
     # Execute script
     os.chdir(tree_directory+"/"+supra_folder+"/"+family+"/"+species_tag+"/"+"region_w"+str(region))
-    os.system("bsub -o /dev/null -e /dev/null sh -c \'rm -fr *.pdf;"+ \
+    os.system("bsub -M 4000 -R 'rusage[mem=4000]' -o /dev/null -e /dev/null sh -c \'rm -fr *.pdf;"+ \
               " rm -fr *_continue_region_w"+region+".tree;" + \
               " R CMD BATCH "+family+"_phospho_continue_region_w"+str(region)+".r;"+\
               "gs -dBATCH -dNOPAUSE -q -sDEVICE=pdfwrite -sOutputFile="+ \

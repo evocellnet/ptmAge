@@ -37,7 +37,7 @@ for family in family_list:
     os.chdir(treedir+"/"+supra_folder+"/"+family+"/"+species_tag+"/region_w"+region)
     os.system("cp ../../"+family+".gnt ./")
     os.system("cp ../"+family+"_reduced.aa.nogap.fasta ./")
-    os.system("bsub -e /dev/null -o /dev/null "+treedir+"/../../src/draw_ancestral_phospho_on_nodes.py "+family+".gnt "+family+"_phospho_continue_region_w"+region+".txt "+family+"_phospho_continue_region_w"+region+"_origins_"+ancthreshold.replace(".","")+".txt "+ancthreshold+" "+region+" "+ncbi_taxonomy+" "+allsitesFile+" > /dev/null")
+    os.system("bsub -e /dev/null -o /dev/null -M 4000 -R 'rusage[mem=4000]' "+treedir+"/../../src/draw_ancestral_phospho_on_nodes.py "+family+".gnt "+family+"_phospho_continue_region_w"+region+".txt "+family+"_phospho_continue_region_w"+region+"_origins_"+ancthreshold.replace(".","")+".txt "+ancthreshold+" "+region+" "+ncbi_taxonomy+" "+allsitesFile+" > /dev/null")
     #os.system("bsub /nfs/research2/beltrao/rstuder/Ubiquitination/Scripts/draw_ancestral_ubi_on_nodes.py "+family+".gnt "+family+"_ubi_continue_region_w"+region+".txt "+family+"_ubi_continue_region_w"+region+"_origins.txt 0.51 "+region)
     # os.chdir("../../../../../")
     #print "./ENSTREE_84/"+supra_folder+"/"+family+"/"+species_tag
