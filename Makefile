@@ -277,10 +277,10 @@ $(TRAININGSETS):
 $(TESTINGSETS):
 	mkdir -p $@
 
-$(FEATURENAMES):
+$(SVMFEATURENAMES):
 	mkdir -p $@
 
-$(FEATUREVALUES):
+$(SVMFEATUREVALUES):
 	mkdir -p $@
 
 $(SVMMODELS):
