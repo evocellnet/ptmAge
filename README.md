@@ -12,9 +12,11 @@ only in phosphorylation.
 - phyml (available in (home/linux)brew)
 - newick-utils (available in (home/linux)brew)
 - phytools (R package)
+- ape (R package)
+- biomaRt (R package)
+- RMySQL (R package)
 - ghostscript
 - wget
-
 
 ## Setup
 
@@ -73,12 +75,6 @@ make prepareAllSVM
 
 ```bash
 make trainSVM
-```
-
-5- Prepare full dataset of STYs to classify
-
-```bash
-make prepareFullSVM
 ```
 
 5- Prepare full dataset of STYs to classify
