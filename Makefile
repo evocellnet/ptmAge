@@ -305,17 +305,19 @@ $(MODELTESTS):
 	mkdir -p $@
 
 #Downloads the biomart datasets where the genome release is available
+# Requires biomaRt and RMySQL
 $(BIOMARTDATASETS):
 	printf "* Downloading Biomart datasets...\n" ;\
 	$(RSCRIPT) $(SRCDIR)/biomartDatasets.R ensembl_compara_$(COMPARARELEASE) $@
 
 # Download the Ensembl proteome for each species
-$(PROTEOMES)/%.fasta: | $(PROTEOMES)
+$(PROTEOMES)/%.fasta: | $(PROTEOMES) $(BIOMARTDATASETS)
 	printf "* Downloading $* from ensembl...\n" ;\
 	$(WGET) -P $(PROTEOMES)/$* \
 		$(call ENSEMBL_URL,$(COMPARARELEASE),$*,$(call CSVCUT,$*,4)) -O $@.gz
 	gunzip $@.gz
 
+# Requires biopython
 $(PROTEOMESCANONICAL)/%.fasta: | $(PROTEOMESCANONICAL) $(PROTEOMES)/%.fasta
 	printf "Filtering canonicals for $* from ensembl...\n" ;\
 	$(PYTHON3) $(SRCDIR)/get_canonical.py \
