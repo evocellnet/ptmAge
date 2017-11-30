@@ -17,7 +17,7 @@
 
 COMPARARELEASE ?= 86
 SPECIESTAG ?= species_n10
-ANCTHRESHOLD ?= 0.51
+ANCTHRESHOLD ?= 0.46
 
 SAMPLESIZE ?= 4000 #number of positives and negatives: Total 2x
 
