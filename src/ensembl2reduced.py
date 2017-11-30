@@ -93,13 +93,13 @@ for path in families_list:
                       " > "+family+"_reduced.tree\n")
 
     # Recompute branch length
-    script_file.write("phyml -i "+family+"_reduced.aa.nogap.phy -d aa -m LG -c 4 -a e -u " \
+    script_file.write("phyml --quiet -i "+family+"_reduced.aa.nogap.phy -d aa -m LG -c 4 -a e -u " \
                       +family+"_reduced.tree -o lr -b 0\n")
 
     # Convert to ultrametric
     r_script = open(family+".ultra.r", "w")
     r_script.write("library(ape)\n")
-    r_script.write("tree <- read.tree(\""+family+"_reduced.aa.nogap.phy_phyml_tree\")\n")
+    r_script.write("tree <- read.tree(\""+family+"_reduced.aa.nogap.phy_phyml_tree.txt\")\n")
     r_script.write("tree <- chronos(tree)\n")
     r_script.write("write.tree(tree, \""+family+"_reduced.aa.nogap.ultrametric.tree\")\n")
     r_script.close()
