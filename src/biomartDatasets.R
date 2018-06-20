@@ -13,9 +13,9 @@ marts <- data.frame(hosts=c("ensembl.org",
                             "protists.ensembl.org",
                             "plants.ensembl.org"),
                     marts=c("ENSEMBL_MART_ENSEMBL",
-                            "fungal_mart",
+                            "fungi_mart",
                             "metazoa_mart",
-                            "protist_mart",
+                            "protists_mart",
                             "plants_mart"))
 
 alldatasets <- apply(marts, 1, function(x) listDatasets(useMart(host=x[1],x[2])))

@@ -263,7 +263,7 @@ output = open(outputFile, "w")
 for column in column_list:
     
     # Load ancestral tree with internal values
-    anc_tree_file = "./"+basename+"_phospho_"+str(column).rjust(5, "0")+"_continue_region_w"+region+".tree"
+    anc_tree_file = "./"+basename+"_ptm_"+str(column).rjust(5, "0")+"_continue_region_w"+region+".tree"
     if os.path.exists(anc_tree_file):
         global ancestral_tree_object
         ancestral_tree_object = {}

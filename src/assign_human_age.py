@@ -53,7 +53,7 @@ file_in.close()
 ubisite_list= list(set(ubisite_list))
 ubisite_list.sort()
 
-print "# Number of genes with (at least 1) phosphorylation sites: ", len(ubisite_list)
+print "# Number of genes with (at least 1) ptm sites: ", len(ubisite_list)
 
 
 # file_out = open(sys.argv[4], "w")
@@ -64,7 +64,7 @@ sys.stdout.write("family"+"\t"+"column"+"\t"+"species"+"\t"+ \
 for path in family_list:
     # path = gene_dict[gene]
     family = path.split("/")[-1]
-    origin_file = path+"/"+species_tag+"/"+"region_w"+region+"/"+family+"_phospho_continue_region_w"+region+"_origins_"+threshold+".txt"
+    origin_file = path+"/"+species_tag+"/"+"region_w"+region+"/"+family+"_ptm_continue_region_w"+region+"_origins_"+threshold+".txt"
     if os.path.exists(origin_file):
         #print gene, "File exists"
         file_in = open(origin_file, "r")

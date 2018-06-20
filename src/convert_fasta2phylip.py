@@ -16,7 +16,7 @@ sequence_dict = {}
 for record in SeqIO.parse(open(infile, "rU"), "fasta") :
     tab = record.id.split(" ")
     #print record.title
-    sequence = record.seq.tostring().replace(" ","")
+    sequence = str(record.seq).replace(" ","")
     #print sequence, len(sequence)
     sequence_dict[tab[0]]= sequence
     if "U" in sequence:

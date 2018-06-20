@@ -81,11 +81,11 @@ for path in families_list:
 
     # Remove empty column
     script_file = open(family+".sh", "w")
-    script_file.write("../../../../../src/remove_empty_col.py "+reduced_aln_file+" "+ \
+    script_file.write("python ../../../../../src/remove_empty_col.py "+reduced_aln_file+" "+ \
                       family+"_reduced.aa.nogap.fasta\n")
 
     # Convert to phylip
-    script_file.write("../../../../../src/convert_fasta2phylip.py "+family+"_reduced.aa.nogap.fasta"+ \
+    script_file.write("python ../../../../../src/convert_fasta2phylip.py "+family+"_reduced.aa.nogap.fasta"+ \
                       " "+family+"_reduced.aa.nogap.phy\n")
 
     # Write reduced .tree file

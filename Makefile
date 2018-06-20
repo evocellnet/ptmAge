@@ -18,6 +18,7 @@
 COMPARARELEASE ?= 86
 SPECIESTAG ?= species_n10
 ANCTHRESHOLD ?= 0.46
+PTMMODE = ubi #other option would be phospho
 
 SAMPLESIZE ?= 4000 #number of positives and negatives: Total 2x
 
@@ -85,7 +86,7 @@ SVMPREDICTIONS = $(TEMPDIR)/svmpredictions
 SVMCLASSSTATS = $(TEMPDIR)/svmclassstats
 PROBABILITYMODELS = $(TEMPDIR)/probability_models
 SVMPREDICTIONSPROB = $(TEMPDIR)/svmpredictions_probability
-ALLPROBABILITIES = $(TEMPDIR)/allSTY_probabilities.tab
+ALLPROBABILITIES = $(TEMPDIR)/all_ptm_probabilities.tab
 
 SIMPLIFYRELEASE = $(shell echo $(1) | sed -e "s/\(.*\)\.p.*/\1/g" | sed -e "s/Equ Cab 2/EquCab2/g" | sed -e "s/JGI 4.2/JGI_4\.2/g")
 ENSEMBL_URL = ftp://ftp.ensembl.org/pub/release-$(1)/fasta/$(shell echo $(2) | sed 's/\(.*\) \(.*\)/\L\1_\2/')/pep/$(shell echo $(2) | sed -e "s/\b\(.\)/\u\1/g").$(call SIMPLIFYRELEASE, $(3)).pep.all.fa.gz
@@ -338,15 +339,16 @@ $(GENETOTREEHUMANFILE):
 	$(GREP) "^ENSP0" $(GENETOTREEFILE) > $@
 
 #General stats and ancestral reconstruction
-$(RESULTSDIR)/stats_$(SPECIESTAG)_w%.tab: $(GENETOTREEHUMANFILE)
+$(RESULTSDIR)/stats_$(SPECIESTAG)_w%.tab: $(RESULTSDIR) $(GENETOTREEHUMANFILE)
 	printf "* Extracting stats in conservation\n";\
-	$(PHYTON) $(SRCDIR)/compile_data.py \
+	$(PYTHON) $(SRCDIR)/compile_data.py \
 	$(ALLSITES) \
 	$(GENETOTREEHUMANFILE) \
 	$(SPECIESTAG) \
 	$(GENETREEDIR) \
 	$* \
-	$(ALLPROBABILITIES) > $@
+	$(ALLPROBABILITIES) \
+	$(PTMMODE) > $@
 
 #Collect ancestral states
 collectStates: states_0 states_3

@@ -12,9 +12,13 @@ species_tag = sys.argv[3]
 tree_directory = sys.argv[4]
 region = sys.argv[5]
 predicted_site = sys.argv[6]
+ptm_mode = sys.argv[7]
 
 def rgb_to_hex(rgb):
    return '#%02x%02x%02x' % rgb
+
+acceptors = {"ubi": ["K"],
+             "phospho": ["S", "T", "Y"]}
 
 # Load modified sites per genes
 ptm_dict = {}
@@ -38,7 +42,7 @@ file_in.close()
 
 # Load modified sites per genes
 ptm_predicted_dict = {}
-if predicted_site != "":
+if os.path.isfile(predicted_site):
     file_in = open(predicted_site, "r")
     while 1:
         line = file_in.readline()
@@ -103,10 +107,10 @@ counter = 0
 # file_out = open(sys.argv[4], "w")
 sys.stdout.write("Family"+"\t"+"Column"+"\t"+ \
                  "Human_genes"+"\t"+"Human_site"+"\t"+ \
-                 "Human_aa"+"\t"+"Human_phospho"+"\t"+ \
-                 "N_genes"+"\t"+"N_aa"+"\t"+"N_STY"+"\t"+ \
-                 "N_ubi_sites"+"\t"+"Ratio phosphosites / N_aa"+ \
-                 "\t"+"Ratio phosphosites / N_STY"+"\t"+"All_genes"+"\n")
+                 "Human_aa"+"\t"+"Human_ptm"+"\t"+ \
+                 "N_genes"+"\t"+"N_aa"+"\t"+"N_acceptors"+"\t"+ \
+                 "N_ptms"+"\t"+"Ratio ptms / N_aa"+ \
+                 "\t"+"Ratio ptms / N_acceptors"+"\t"+"All_genes"+"\n")
 
 # family_with_ptm = ["ENSTREE_05500"]
 
@@ -147,11 +151,11 @@ for family in family_with_ptm:
                 j = j+1
         corresponding_dict[ensembl_id] = corr_dict_rev
 
-        # Check if ensembl_id contains ubi sites
+        # Check if ensembl_id contains modified sites
         if ensembl_id in ptm_dict:
             for site in ptm_dict[ensembl_id]:
                 column = corr_dict[int(site)-1]
-                if(sequence_dict[ensembl_id][int(column)] in ["S", "T", "Y"]):
+                if(sequence_dict[ensembl_id][int(column)] in acceptors[ptm_mode]):
                     column_with_ptm.append(str(column)) # Add column to list
                 
     # Remove duplicate columns
@@ -207,7 +211,7 @@ for family in family_with_ptm:
                     aa_vector.append(aa)
 
                     score = 0.0
-                    if aa in ["S", "T", "Y"]:
+                    if aa in acceptors[ptm_mode]:
                         score = 0.5
                     site = str(corresponding_dict[ensembl_id][column]+1)
                     if ensembl_id in ptm_predicted_dict:
@@ -233,7 +237,10 @@ for family in family_with_ptm:
 
             
         n_aa = len(aa_list)
-        n_k = aa_list.count("S")+aa_list.count("T")+aa_list.count("Y")
+        if ptm_mode == "phospho":
+           n_k = aa_list.count("S")+aa_list.count("T")+aa_list.count("Y")
+        if ptm_mode == "ubi":
+           n_k = aa_list.count("K")
         # print family+"\t"+str(column)
         # print aa_list
         # print family+"\t"+str(column+1)+"\t"+",".join(human_gene_list)+"\t"+",".join(human_site_list)+"\t"+",".join(human_aa_list)
@@ -254,7 +261,7 @@ for family in family_with_ptm:
     # Write Jalview output
     jalview_out = open(tree_directory+"/"+supra_folder+"/"+family+"/"+species_tag+"/"+family \
                        +".annotations_region_w"+str(region)+".txt", "w")
-    jalview_out.write("phospho\tred\n")
+    jalview_out.write("ptm\tred\n")
     for ensembl_id in sequence_dict:
         for column in column_with_ptm:
             column = int(column)
@@ -287,7 +294,7 @@ for family in family_with_ptm:
     os.system("mkdir -p "+tree_directory+"/"+supra_folder+"/"+family+"/"+species_tag+"/"+"region_w"+str(region))
     
     # Write input file for ancestral state reconstruction
-    score_file_out = open(basename+"_phospho_continue_region_w"+str(region)+".txt", "w")
+    score_file_out = open(basename+"_ptm_continue_region_w"+str(region)+".txt", "w")
     # print "Gene"+"\t"+"\t".join(column_with_ptm)
     real_column_with_ptm = [str(int(column)+1) for column in column_with_ptm]
     score_file_out.write("Gene"+"\t"+"\t".join(real_column_with_ptm)+"\n")
@@ -303,7 +310,7 @@ for family in family_with_ptm:
 
     # Write R script to build ancestral reconstruction
     tree_file = tree_directory+"/"+supra_folder+"/"+family+"/"+species_tag+"/"+family+"_reduced.aa.nogap.ultrametric.tree"
-    ubi_file = open(basename+"_phospho_continue_region_w"+str(region)+".r", "w")
+    ubi_file = open(basename+"_ptm_continue_region_w"+str(region)+".r", "w")
     ubi_file.write("if (!require(\"ape\")) {\n")
     ubi_file.write("    library(ape)\n")
     ubi_file.write("}\n")
@@ -312,7 +319,7 @@ for family in family_with_ptm:
     ubi_file.write("}\n")
     ubi_file.write("phosphotree <- read.tree(\""+tree_file+"\")\n")
     ubi_file.write("phosphotree <- multi2di(phosphotree)\n")
-    ubi_file.write("phosphodata <- read.table(\""+family+"_phospho_continue_region_w"+ \
+    ubi_file.write("phosphodata <- read.table(\""+family+"_ptm_continue_region_w"+ \
                        str(region)+".txt\",head=T)\n")
     ubi_file.write("phosphodata <- phosphodata[match(phosphotree$tip.label, phosphodata$Gene),]\n")
     for column in column_with_ptm:
@@ -328,11 +335,11 @@ for family in family_with_ptm:
         # ubi_file.write("ancestral_reconstruction <- ace(char1, phosphotree, type=\"continuous\", method=\"ML\")\n")
         ubi_file.write("ancestral_reconstruction <- fastAnc(phosphotree, char1, vars=TRUE, CI=TRUE)\n")
         ubi_file.write("phosphotree$node.label <- ancestral_reconstruction$ace\n")
-        ubi_file.write("write.tree(phosphotree,\""+family+"_phospho_"+str(int(column)+1).zfill(5)+"_continue_region_w"+str(region)+".tree\")\n")
+        ubi_file.write("write.tree(phosphotree,\""+family+"_ptm_"+str(int(column)+1).zfill(5)+"_continue_region_w"+str(region)+".tree\")\n")
         ubi_file.write("MLfinal <- c(char1, ancestral_reconstruction$ace)\n")
 
         # Write PDF
-        ubi_file.write("pdf(\""+family+"_phospho_"+str(int(column)+1).zfill(5)+"_continue_region_w"+str(region)+".pdf\", height=1.5+(nrow(phosphodata)/5))\n")
+        ubi_file.write("pdf(\""+family+"_ptm_"+str(int(column)+1).zfill(5)+"_continue_region_w"+str(region)+".pdf\", height=1.5+(nrow(phosphodata)/5))\n")
         ubi_file.write("plot(phosphotree, label.offset=0.03, cex=0.6)\n")
         #ubi_file.write("tiplabels(thermo = char1, piecol = c(\"#AACCFF\",\"white\"), cex=0.6, width=.02, height=.5)\n")
         #ubi_file.write("nodelabels(thermo = ancestral_reconstruction$ace, piecol = c(\"#AACCFF\",\"white\"), cex=0.6, width=.02, height=.5)\n")
@@ -348,10 +355,10 @@ for family in family_with_ptm:
     os.chdir(tree_directory+"/"+supra_folder+"/"+family+"/"+species_tag+"/"+"region_w"+str(region))
     os.system("bsub -M 4000 -R 'rusage[mem=4000]' -o /dev/null -e /dev/null sh -c \'rm -fr *.pdf;"+ \
               " rm -fr *_continue_region_w"+region+".tree;" + \
-              " R CMD BATCH "+family+"_phospho_continue_region_w"+str(region)+".r;"+\
+              " R CMD BATCH "+family+"_ptm_continue_region_w"+str(region)+".r;"+\
               "gs -dBATCH -dNOPAUSE -q -sDEVICE=pdfwrite -sOutputFile="+ \
-              family+"_phospho_continue_region_w"+str(region)+"_trees.pdf "+ \
-              family+"_phospho_*_continue_region_w"+str(region)+".pdf\' > /dev/null")
+              family+"_ptm_continue_region_w"+str(region)+"_trees.pdf "+ \
+              family+"_ptm_*_continue_region_w"+str(region)+".pdf\' > /dev/null")
     os.chdir("../../../../../")
     #sys.exit()
 # Close file
